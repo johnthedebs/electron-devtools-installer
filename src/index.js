@@ -14,7 +14,7 @@ if (fs.existsSync(IDMapPath)) {
   IDMap = JSON.parse(fs.readFileSync(IDMapPath, 'utf8'));
 }
 
-const install = (extensionReference, forceDownload = false) => {
+const install = (extensionReference, forceDownload = false, browserWindow = BrowserWindow) => {
   if (Array.isArray(extensionReference)) {
     return Promise.all(extensionReference.map(extension => install(extension, forceDownload)));
   }
@@ -33,8 +33,8 @@ const install = (extensionReference, forceDownload = false) => {
   }
   const extensionName = IDMap[chromeStoreID];
   const extensionInstalled = extensionName &&
-    BrowserWindow.getDevToolsExtensions &&
-    BrowserWindow.getDevToolsExtensions()[extensionName];
+    browserWindow.getDevToolsExtensions &&
+    browserWindow.getDevToolsExtensions()[extensionName];
   if (!forceDownload && extensionInstalled) {
     return Promise.resolve(IDMap[chromeStoreID]);
   }
@@ -42,9 +42,9 @@ const install = (extensionReference, forceDownload = false) => {
     .then((extensionFolder) => {
       // Use forceDownload, but already installed
       if (extensionInstalled) {
-        BrowserWindow.removeDevToolsExtension(extensionName);
+        browserWindow.removeDevToolsExtension(extensionName);
       }
-      const name = BrowserWindow.addDevToolsExtension(extensionFolder); // eslint-disable-line
+      const name = browserWindow.addDevToolsExtension(extensionFolder); // eslint-disable-line
       fs.writeFileSync(
         IDMapPath,
         JSON.stringify(Object.assign(IDMap, {
